@@ -1,5 +1,6 @@
 from google.oauth2.service_account import Credentials
 import ipynp_to_doc_conv as converter
+import warnings
 # Path to your Google Cloud credentials JSON
 SERVICE_ACCOUNT_FILE = '/home/huthayfa/Downloads/docs-auto-bzu-qc-00204c59092e.json'
 
@@ -60,14 +61,24 @@ def move_to_folder(file_id, folder_id):
 
 # Main Execution
 if __name__ == '__main__':
-    test_ipynb = '/home/huthayfa/qiskit_textbook_bzu_qc/notebooks/ch-demos/hello-qiskit.ipynb'
 
-    title = 'Test2 Doc'
+    translated_ipynb = '../translations/ar/ch-demos/hello-qiskit.ipynb'
+    orig_ipynb = '../notebooks/ch-demos/hello-qiskit.ipynb'
+    doc_name = orig_ipynb.replace('../', '').replace('/', ' - ').replace('.ipynb', '').replace('-', ' ').title()
+
     folder_id = '1rNGCufAP6mF9uUWxbPnMT2cm4UTme08q'  # Replace with your folder ID
-    cells=converter.read_ipynb(test_ipynb)
-    reqs = converter.ipynb_to_google_doc_req(cells)
+    trans_cells=converter.read_ipynb(translated_ipynb)
+    orig_cells=converter.read_ipynb(orig_ipynb)
+    # Check if the number of cells in the original and translated notebooks are the same
+    print(f'Number of cells in original notebook: {len(orig_cells)}')
+    print(f'Number of cells in translated notebook: {len(trans_cells)}')
+    if len(trans_cells) != len(orig_cells):
+        # warn user
+        warnings.warn(f'Number of cells in original and translated notebooks do not match. Skipping...')
+
+    reqs = converter.ipynb_trans_orig_to_google_doc_req(orig_cells,trans_cells)
     # Create Doc and Write to it
-    doc_id = create_google_doc(title)
+    doc_id = create_google_doc(doc_name)
     move_to_folder(doc_id, folder_id)
 
     write_to_doc(doc_id, reqs)
